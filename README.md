@@ -24,6 +24,7 @@ Made by [Alyssa X](https://alyssax.com)
 	- [On grab](#on-grab)
 	- [On release](#on-release)
 	- [On snap](#on-snap)
+	- [On rearrange](#on-rearrange)
 - [Methods](#methods)
     - [Get the flowchart data](#get-the-flowchart-data)
     - [Import the flowchart data](#import-the-flowchart-data)
@@ -39,6 +40,7 @@ Currently, Flowy supports the following:
  - [x] Delete blocks
  - [x] Automatic block centering
  - [x] Conditional snapping
+ - [x] Conditional block removal
  - [x] Import saved files
  - [x] Mobile support
  - [x] Vanilla javascript (no dependencies)
@@ -62,7 +64,7 @@ Adding Flowy to your WebApp is incredibly simple:
 
 ### Initialization
 ```javascript
-flowy(canvas, ongrab, onrelease, onsnap, spacing_x, spacing_y);
+flowy(canvas, ongrab, onrelease, onsnap, onrearrange, spacing_x, spacing_y);
 ```
 
 Parameter | Type | Description
@@ -71,6 +73,7 @@ Parameter | Type | Description
    `ongrab` | *function* (optional) |  Function that gets triggered when a block is dragged
    `onrelease` | *function* (optional) |  Function that gets triggered when a block is released
    `onsnap` | *function* (optional) |  Function that gets triggered when a block snaps with another one
+   `onrearrange` | *function* (optional) |  Function that gets triggered when blocks are rearranged
    `spacing_x` | *integer* (optional) |  Horizontal spacing between blocks (default 20px)
    `spacing_y` | *integer* (optional) |  Vertical spacing between blocks (default 80px)
 
@@ -87,7 +90,7 @@ To define the blocks that can be dragged, you need to add the class `.create-flo
 var spacing_x = 40;
 var spacing_y = 100;
 // Initialize Flowy
-flowy(document.getElementById("canvas"), onGrab, onRelease, onSnap, spacing_x, spacing_y);
+flowy(document.getElementById("canvas"), onGrab, onRelease, onSnap, onRearrange, spacing_x, spacing_y);
 function onGrab(block){
 	// When the user grabs a block
 }
@@ -96,6 +99,9 @@ function onRelease(){
 }
 function onSnap(block, first, parent){
 	// When a block snaps with another one
+}
+function onRearrange(block, parent){
+	// When a block is rearranged
 }
 ```
 ## Callbacks
@@ -119,6 +125,7 @@ function onRelease(){
 }
 ```
 Gets triggered when a user lets go of a block, regardless of whether it attaches or even gets released in the canvas.
+
 ### On snap
 ```javascript
 function onSnap(block, first, parent){
@@ -134,6 +141,20 @@ Parameter | Type | Description
    `first` | *boolean* | If true, the block that has been dragged is the first one in the canvas
    `parent` | *javascript DOM element* | The parent the block can attach to
    
+### On rearrange
+```javascript
+function onRearrange(block, parent){
+	// When a block is rearranged
+	return true;
+}
+```
+Gets triggered when blocks are rearranged and are dropped anywhere in the canvas, without a parent to attach to. You can either allow the blocks to be deleted, or prevent it and thus have them re-attach to their previous parent using `return true;`
+
+Parameter | Type | Description
+--- | --- | ---
+   `block` | *javascript DOM element* | The block that has been grabbed
+   `parent` | *javascript DOM element* | The parent the block can attach to
+   
 ## Methods
 ### Get the flowchart data
 ```javascript
@@ -144,10 +165,10 @@ JSON.stringify(flowy.output());
 ```
 The JSON object that gets outputted looks like this:
 ```json
-[
-	html: "",
-	blockarr: [],
-	blocks: [
+{
+	"html": "",
+	"blockarr": [],
+	"blocks": [
 		{
 			"id": 1,
 			"parent": 0,
@@ -161,10 +182,11 @@ The JSON object that gets outputted looks like this:
 				{
 				"id": "block-id",
 				"class": "block-class"
+				}
 			]
 		}
 	]
-]
+}
 ```
 
 Here's what each property means:
