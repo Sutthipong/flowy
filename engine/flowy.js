@@ -174,15 +174,15 @@ var flowy = function(canvas, grab, release, snapping, rearrange, spacing_x, spac
                             blockParent.style.left = (blockParent.getBoundingClientRect().left + window.scrollX) - (canvas_div.getBoundingClientRect().left + window.scrollX) + canvas_div.scrollLeft - 1 + "px";
                             blockParent.style.top = (blockParent.getBoundingClientRect().top + window.scrollY) - (canvas_div.getBoundingClientRect().top + window.scrollY) + canvas_div.scrollTop - 1 + "px";
                             arrowParent.style.left = (arrowParent.getBoundingClientRect().left + window.scrollX) - (canvas_div.getBoundingClientRect().left + window.scrollX) + canvas_div.scrollLeft - 1 + "px";
-                            arrowParent.style.top = (arrowParent.getBoundingClientRect().top + window.scrollY) - (canvas_div.getBoundingClientRect().top + canvas_div.scrollTop) - 1 + "px";
+                            arrowParent.style.top = (arrowParent.getBoundingClientRect().top + window.scrollY) - (canvas_div.getBoundingClientRect().top) + canvas_div.scrollTop - 1 + "px";
                             canvas_div.appendChild(blockParent);
                             canvas_div.appendChild(arrowParent);
                             blockstemp[w].x = (blockParent.getBoundingClientRect().left + window.scrollX) + (parseInt(blockParent.offsetWidth) / 2) + canvas_div.scrollLeft - 1;
                             blockstemp[w].y = (blockParent.getBoundingClientRect().top + window.scrollY) + (parseInt(blockParent.offsetHeight) / 2) + canvas_div.scrollTop - 1;
                         }
                     }
-                    blockstemp.filter(a => a.id == 0)[0].x = (drag.getBoundingClientRect().left + window.scrollX) + (parseInt(window.getComputedStyle(drag).width) / 2);
-                    blockstemp.filter(a => a.id == 0)[0].y = (drag.getBoundingClientRect().top + window.scrollY) + (parseInt(window.getComputedStyle(drag).height) / 2);
+                    blockstemp.filter(a => a.id == 0)[0].x = (drag.getBoundingClientRect().left + window.scrollX) + (parseInt(window.getComputedStyle(drag).width) / 2) + canvas_div.scrollLeft;
+                    blockstemp.filter(a => a.id == 0)[0].y = (drag.getBoundingClientRect().top + window.scrollY) + (parseInt(window.getComputedStyle(drag).height) / 2) + canvas_div.scrollTop;
                     blocks = blocks.concat(blockstemp);
                     blockstemp = [];
                 } else if (active && blocks.length == 0 && (drag.getBoundingClientRect().top + window.scrollY) > (canvas_div.getBoundingClientRect().top + window.scrollY) && (drag.getBoundingClientRect().left + window.scrollX) > (canvas_div.getBoundingClientRect().left + window.scrollX)) {
@@ -462,9 +462,6 @@ var flowy = function(canvas, grab, release, snapping, rearrange, spacing_x, spac
                 if (blocks.length > 1) {
                     rearrangeMe();
                 }
-                if (lastevent) {
-                    fixOffset();
-                }
                 dragblock = false;
             }
             if (active) {
@@ -477,14 +474,23 @@ var flowy = function(canvas, grab, release, snapping, rearrange, spacing_x, spac
                 blockstemp.filter(a => a.id == parseInt(drag.querySelector(".blockid").value)).y = (drag.getBoundingClientRect().left + window.scrollX) + (parseInt(window.getComputedStyle(drag).height) / 2) + canvas_div.scrollTop;
             }
             if (active || rearrange) {
+                if (mouse_x > canvas_div.getBoundingClientRect().width+canvas_div.getBoundingClientRect().left-10 && mouse_x < canvas_div.getBoundingClientRect().width+canvas_div.getBoundingClientRect().left+10) {
+                    canvas_div.scrollLeft += 10;
+                } else if (mouse_x < canvas_div.getBoundingClientRect().left+10 && mouse_x > canvas_div.getBoundingClientRect().left-10) {
+                    canvas_div.scrollLeft -= 10;
+                } else if (mouse_y > canvas_div.getBoundingClientRect().height+canvas_div.getBoundingClientRect().top-10 && mouse_y < canvas_div.getBoundingClientRect().height+canvas_div.getBoundingClientRect().top+10) {
+                    canvas_div.scrollTop += 10;
+                } else if (mouse_y < canvas_div.getBoundingClientRect().top+10 && mouse_y > canvas_div.getBoundingClientRect().top-10) {
+                    canvas_div.scrollLeft -= 10;
+                }
                 var xpos = (drag.getBoundingClientRect().left + window.scrollX) + (parseInt(window.getComputedStyle(drag).width) / 2) + canvas_div.scrollLeft;
                 var ypos = (drag.getBoundingClientRect().top + window.scrollY) + canvas_div.scrollTop;
                 var blocko = blocks.map(a => a.id);
                 for (var i = 0; i < blocks.length; i++) {
-                    if (xpos >= blocks.filter(a => a.id == blocko[i])[0].x - (blocks.filter(a => a.id == blocko[i])[0].width / 2) - paddingx && xpos <= blocks.filter(a => a.id == blocko[i])[0].x + (blocks.filter(a => a.id == blocko[i])[0].width / 2) + paddingx && ypos >= blocks.filter(a => a.id == blocko[i])[0].y - (blocks.filter(a => a.id == blocko[i])[0].height / 2) && ypos <= blocks.filter(a => a.id == blocko[i])[0].y + blocks.filter(a => a.id == blocko[i])[0].height) {
+                    if (xpos >= blocks.filter(a => a.id == blocko[i])[0].x - (blocks.filter(a => a.id == blocko[i])[0].width / 2) - paddingx && xpos <= blocks.filter(a => a.id == blocko[i])[0].x + (blocks.filter(a => a.id == blocko[i])[0].width / 2) + paddingx && ypos >= blocks.filter(a => a.id == blocko[i])[0].y + (blocks.filter(a => a.id == blocko[i])[0].height / 2) && ypos <= blocks.filter(a => a.id == blocko[i])[0].y + blocks.filter(a => a.id == blocko[i])[0].height) {
                         document.querySelector(".blockid[value='" + blocko[i] + "']").parentNode.appendChild(document.querySelector(".indicator"));
-                        document.querySelector(".indicator").style.left = (parseInt(window.getComputedStyle(document.querySelector(".blockid[value='" + blocko[i] + "']").parentNode).width) / 2) - 5 + "px";
-                        document.querySelector(".indicator").style.top = window.getComputedStyle(document.querySelector(".blockid[value='" + blocko[i] + "']").parentNode).height + "px";
+                        document.querySelector(".indicator").style.left = (document.querySelector(".blockid[value='" + blocko[i] + "']").parentNode.offsetWidth / 2) - 5 + "px";
+                        document.querySelector(".indicator").style.top = document.querySelector(".blockid[value='" + blocko[i] + "']").parentNode.offsetHeight + "px";
                         document.querySelector(".indicator").classList.remove("invisible");
                         break;
                     } else if (i == blocks.length - 1) {
